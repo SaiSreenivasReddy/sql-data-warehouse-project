@@ -1,0 +1,227 @@
+/*
+
+ETL Transformation Script for Silver Tables
+
+Purpose:
+This script performs data cleaning, normalization, and quality checks as part of the ETL pipeline, 
+transforming raw data from Bronze tables into refined Silver tables. It ensures data integrity and prepares data for analytics.
+
+Key Steps:
+- **Deduplication:** Keeps only the latest record per primary key (e.g., customer ID, product ID) using window functions.
+- **Data Cleaning:** Removes invalid entries, trims extra spaces, and excludes records with missing or zero IDs.
+- **Normalization:** Converts coded values into descriptive text (e.g., gender 'M' → 'Male', marital status 'S' → 'Single').
+- **Data Correction:** Fixes incorrect sales and price values by recalculating totals where necessary.
+- **Standardization:** Formats product keys, category IDs, and country codes for consistency.
+- **Date Validation:** Ensures dates are valid and replaces future or invalid dates with NULL.
+
+Workflow:
+Raw data loaded into Bronze tables is processed through this script to produce Silver tables with clean, 
+consistent, and standardized data. These Silver tables serve as a reliable foundation for further analysis and reporting in downstream data layers.
+
+Importance:
+This step is critical to maintain data quality, prevent error propagation, and provide trustworthy datasets for business intelligence.
+
+Usage:
+Run this script after loading raw data into Bronze tables to automatically transform and load data into the Silver layer, enabling effective ETL management.
+
+*/
+
+
+
+-- ============================================
+-- Quality Checks and Data Transformation
+-- Insert cleaned and normalized customer data
+-- ============================================
+
+-- Quality checks:
+-- 1. Remove duplicates based on primary key (cst_id) keeping the latest record
+-- 2. Check for NULLs in primary key
+-- 3. Remove unwanted spaces
+-- 4. Normalize gender and marital status
+
+INSERT INTO silver_crm_cust_info (
+    cst_id,
+    cst_key,
+    cst_firstname,
+    cst_lastname,
+    cst_marital_status,
+    cst_gndr,
+    cst_create_date
+)
+SELECT 
+    cst_id,
+    cst_key,
+    TRIM(cst_firstname) AS cst_firstname, -- Remove extra spaces in first name
+    TRIM(cst_lastname) AS cst_lastname,   -- Remove extra spaces in last name
+
+    -- Standardize marital status
+    CASE 
+        WHEN UPPER(TRIM(cst_marital_status)) = 'S' THEN 'Single'
+        WHEN UPPER(TRIM(cst_marital_status)) = 'M' THEN 'Married'
+        ELSE 'n/a'
+    END AS cst_marital_status,
+
+    -- Standardize gender
+    CASE 
+        WHEN UPPER(TRIM(cst_gndr)) = 'F' THEN 'Female'
+        WHEN UPPER(TRIM(cst_gndr)) = 'M' THEN 'Male'
+        ELSE 'n/a'
+    END AS cst_gndr,
+
+    cst_create_date
+FROM (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (PARTITION BY cst_id ORDER BY cst_create_date DESC) AS flag_last -- Keep latest record per customer
+    FROM crm_cust_info
+    WHERE cst_id != 0 -- Exclude invalid records
+) t
+WHERE flag_last = 1; -- Select only latest records per customer
+
+-- ============================================
+-- Insert cleaned and normalized product data
+-- ============================================
+
+INSERT INTO silver_crm_prd_info (
+    prd_id,
+    cat_id,
+    prd_key,
+    prd_nm,
+    prd_cost,
+    prd_line,
+    prd_start_dt,
+    prd_end_dt
+)
+SELECT
+    prd_id,
+    REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id, -- Extract and clean category ID
+    SUBSTRING(prd_key, 7, CHAR_LENGTH(prd_key)) AS prd_key, -- Extract product key
+    prd_nm,
+    IFNULL(prd_cost, 0) AS prd_cost, -- Replace NULL cost with 0
+
+    -- Normalize product line
+    CASE UPPER(TRIM(prd_line))
+        WHEN 'M' THEN 'Mountain'
+        WHEN 'R' THEN 'Road'
+        WHEN 'S' THEN 'Other Sales'
+        WHEN 'T' THEN 'Touring'
+        ELSE 'n/a'
+    END AS prd_line,
+
+    CAST(prd_start_dt AS DATE) AS prd_start_dt, -- Ensure correct date format
+    LEAD(prd_start_dt) OVER (PARTITION BY prd_key ORDER BY prd_start_dt) AS prd_end_dt -- Calculate product end date
+FROM (
+    SELECT 
+        *,
+        ROW_NUMBER() OVER (PARTITION BY prd_id ORDER BY prd_start_dt DESC) AS flag_last -- Keep latest product version
+    FROM crm_prd_info
+    WHERE prd_id != 0 -- Exclude invalid records
+) t
+WHERE flag_last = 1;
+
+-- ============================================
+-- Insert cleaned and corrected sales data
+-- ============================================
+
+INSERT INTO silver_crm_sales_details (
+    sls_ord_num,
+    sls_prd_key,
+    sls_cust_id,
+    sls_order_dt,
+    sls_ship_dt,
+    sls_due_dt,
+    sls_sales,
+    sls_quantity,
+    sls_price
+)
+SELECT
+    sls_ord_num,
+    sls_prd_key,
+    sls_cust_id,
+    sls_order_dt,
+    sls_ship_dt,
+    sls_due_dt,
+
+    -- Correct sls_sales if it's NULL, <= 0, or incorrect
+    CASE
+        WHEN sls_sales IS NULL OR sls_sales <= 0 OR sls_sales != sls_quantity * ABS(sls_price)
+        THEN sls_quantity * ABS(sls_price)
+        ELSE sls_sales
+    END AS sls_sales,
+
+    sls_quantity,
+
+    -- Correct sls_price if it's NULL or <= 0
+    CASE
+        WHEN sls_price IS NULL OR sls_price <= 0
+        THEN sls_sales / NULLIF(sls_quantity, 0) -- Avoid division by zero
+        ELSE sls_price
+    END AS sls_price
+FROM crm_sales_details;
+
+-- ============================================
+-- Insert cleaned customer data from ERP source
+-- ============================================
+
+INSERT INTO silver_erp_cust_az12 (
+    cid,
+    bdate,
+    gen
+)
+SELECT 
+    -- Remove 'NAS' prefix if exists
+    CASE
+        WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4, CHAR_LENGTH(cid))
+        ELSE cid
+    END AS cid,
+
+    -- Clean future birth dates
+    CASE 
+        WHEN bdate > CURRENT_DATE THEN NULL
+        ELSE bdate
+    END AS bdate,
+
+    -- Standardize gender
+    CASE 
+        WHEN UPPER(TRIM(REPLACE(REPLACE(gen, CHAR(13), ''), CHAR(10), ''))) IN ('F', 'FEMALE') THEN 'Female'
+        WHEN UPPER(TRIM(REPLACE(REPLACE(gen, CHAR(13), ''), CHAR(10), ''))) IN ('M', 'MALE') THEN 'Male'
+        ELSE 'n/a'
+    END AS gen
+FROM erp_cust_az12;
+
+-- ============================================
+-- Insert cleaned location data from ERP source
+-- ============================================
+
+INSERT INTO silver_erp_loc_a101 (
+    cid,
+    cntry
+)
+SELECT
+    REPLACE(cid, '_', '') AS cid, -- Remove underscores from customer ID
+
+    -- Standardize country names
+    CASE
+        WHEN TRIM(cntry) = 'DE' THEN 'Germany'
+        WHEN TRIM(cntry) IN ('US', 'USA') THEN 'United States'
+        WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'n/a'
+        ELSE TRIM(cntry)
+    END AS cntry
+FROM erp_loc_a101;
+
+-- ============================================
+-- Insert product category data without transformations
+-- ============================================
+
+INSERT INTO silver_erp_px_cat_g1v2 (
+    id,
+    cat,
+    subcat,
+    maintenance
+)
+SELECT 
+    id,
+    cat,
+    subcat,
+    maintenance
+FROM erp_px_cat_g1v2;
