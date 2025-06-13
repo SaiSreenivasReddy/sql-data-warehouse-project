@@ -1,3 +1,7 @@
+-- ==========================
+-- BRONZE TABLES CREATION
+-- ==========================
+
 /*
 
 DDL Script: Create Bronze Tables
