@@ -6,7 +6,7 @@ Script Purpose:
               * This Script Creates Tables in the Data Warehouse Database , Dropping Existing Tables
                 if they already exists
               * Run this Script to re-define the DDL Structure of Tables
-	      * Exports the data in .csv file in our system to the Tables that we created in our database
+	      * Exports the data from .csv file in our system to the Tables that we created in our database
 
 */
 
