@@ -1,0 +1,62 @@
+📊 Gold Layer Data Warehouse: Data Catalog
+📝 Project Overview
+This repository contains the Data Catalog for the Gold Layer of a data warehouse.
+The Gold Layer provides business-ready, analytics-friendly data through carefully structured dimension and fact tables.
+
+It is designed to:
+
+Support reporting dashboards
+
+Enable business intelligence (BI) queries
+
+Improve decision-making through clean, enriched data
+
+📂 Data Model
+1. gold_dim_customers
+Purpose: Holds detailed customer information, including demographics and locations.
+
+Column Name	       Data Type	             Description
+  
+customer_key	     INT	                   Unique surrogate key for each customer.
+customer_id	       INT	                   Original source customer ID.
+customer_number	   NVARCHAR(50)	           External customer reference.
+first_name	       NVARCHAR(50)	           Customer’s first name.
+last_name	         NVARCHAR(50)	           Customer’s last name.
+country	           NVARCHAR(50)	           Country of residence.
+marital_status	   NVARCHAR(50)	           Marital status.
+gender	           NVARCHAR(50)	           Gender (Male/Female/n/a).
+birth_date	       DATE	                   Date of birth.
+create_date	       DATE	                   Record creation date.
+
+  
+2. gold_dim_products
+Purpose: Contains product details, categories, and cost information.
+
+Column Name	       Data Type	             Description
+
+product_key	       INT	                   Unique surrogate key for each product.
+product_id	       INT	                   Original product ID.
+product_number	   NVARCHAR(50)	           External product reference.
+product_name	     NVARCHAR(50)	           Product name and details.
+category_id	       NVARCHAR(50)	           Product category ID.
+category	         NVARCHAR(50)	           High-level product category.
+sub_category	     NVARCHAR(50)          	 Detailed product classification.
+maintenance      	 NVARCHAR(50)	           Maintenance status (Yes/No).
+cost	             INT	                   Product base cost.
+product_line	     NVARCHAR(50)	           Product line or series.
+start_date	       DATE	                   Product launch date.
+
+3. gold_fact_sales
+Purpose: Stores sales transactions for detailed analysis.
+
+Column Name	       Data Type	              Description
+
+order_number	     NVARCHAR(50)	            Unique sales order ID.
+product_key	       INT	                    Foreign key linking to products.
+customer_key	     INT	                    Foreign key linking to customers.
+order_date	       DATE	                    Order placement date.
+ship_date	         DATE	                    Order shipping date.
+due_date	         DATE	                    Order payment due date.
+sales	             INT	                    Total sales value for the order line.
+quantity	         INT	                    Number of products sold.
+price	             INT	                    Unit price of the product.
