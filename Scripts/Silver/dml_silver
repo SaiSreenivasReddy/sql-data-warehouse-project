@@ -198,7 +198,7 @@ INSERT INTO silver_erp_loc_a101 (
     cntry
 )
 SELECT
-    REPLACE(cid, '_', '') AS cid, -- Remove underscores from customer ID
+    REPLACE(cid, '-', '') AS cid, -- Remove underscores from customer ID
 
     -- Standardize country names
     CASE
