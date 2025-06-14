@@ -1,0 +1,96 @@
+/*
+Gold Layer Views Creation Script
+
+Purpose:
+This script creates the final, integrated data views (Gold Layer) by combining and enriching
+cleaned Silver-layer datasets. It builds dimension and fact views optimized for analytics and reporting.
+
+Key Steps:
+- Create surrogate keys for stable dimension identifiers.
+- Integrate multiple Silver tables to enrich customer and product dimensions.
+- Use prioritized data sources for fields with potential conflicts.
+- Filter out historical or inactive records in product dimension.
+- Link sales fact data with dimension surrogate keys for efficient querying.
+
+Workflow:
+Starting from cleansed Silver tables, this script produces business-ready dimension and fact views.
+These Gold views are designed for fast access, consistent keys, and comprehensive attribute coverage.
+
+Importance:
+Gold views enable robust business intelligence, prevent inconsistencies, and improve query performance.
+They represent the final layer of data modeling before consumption by BI tools or analysts.
+
+Usage:
+Run this script after the Silver tables are populated to build your data warehouse's Gold layer.
+*/
+
+-- ============================================
+-- Create a view for the final customer dimension
+-- ============================================
+
+CREATE VIEW gold_dim_customers AS
+
+SELECT 
+    ROW_NUMBER () OVER(ORDER BY cst_id) AS customer_key, -- Surrogate key for internal dimension use
+    ci.cst_id AS customer_id,                           -- Original customer ID from CRM
+    ci.cst_key AS customer_number,                      -- CRM customer number/key
+    ci.cst_firstname AS first_name,                     -- Customer first name
+    ci.cst_lastname AS last_name,                       -- Customer last name
+    la.cntry AS country,                                -- Country from ERP location data
+    ci.cst_marital_status AS marital_status,           -- Normalized marital status from CRM
+    CASE
+        WHEN ci.cst_gndr != 'n/a' THEN ci.cst_gndr     -- Prefer CRM gender if available
+        ELSE COALESCE(ca.gen, 'n/a')                    -- Otherwise fallback to ERP gender
+    END AS gender,                                      -- Final resolved gender
+    ca.bdate AS birth_date,                             -- Birth date from ERP data
+    ci.cst_create_date AS create_date                   -- Customer creation timestamp
+FROM silver_crm_cust_info AS ci
+LEFT JOIN silver_erp_cust_az12 AS ca
+    ON ci.cst_key = ca.cid                             -- Enrich with ERP customer info
+LEFT JOIN silver_erp_loc_a101 AS la
+    ON ci.cst_key = la.cid;                            -- Enrich with ERP location info
+
+-- ============================================
+-- Create a view for the final product dimension
+-- ============================================
+
+CREATE VIEW gold_dim_products AS
+
+SELECT 
+    ROW_NUMBER() OVER(ORDER BY pn.prd_start_dt, pn.prd_key) AS product_key, -- Surrogate product key for dimension
+    pn.prd_id AS product_id,                                                -- Original product ID
+    pn.prd_key AS product_number,                                          -- Original product number/key
+    pn.prd_nm AS product_name,                                             -- Product name
+    pn.cat_id AS category_id,                                              -- Category ID linked to ERP category table
+    pc.cat AS category,                                                    -- Product category description
+    pc.subcat AS sub_category,                                             -- Product sub-category description
+    pc.maintenance,                                                       -- Maintenance info flag/details
+    pn.prd_cost AS cost,                                                  -- Product cost price
+    pn.prd_line AS product_line,                                          -- Product line (Mountain, Road, etc.)
+    pn.prd_start_dt AS stsrt_date                                         -- Product start date for history tracking
+FROM silver_crm_prd_info AS pn
+LEFT JOIN silver_erp_px_cat_g1v2 AS pc
+    ON pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL; -- Filter out inactive/historical product records
+
+-- ============================================
+-- Create a view for the final sales fact
+-- ============================================
+
+CREATE VIEW gold_fact_sales AS
+
+SELECT
+    sd.sls_ord_num AS order_number,  -- Unique sales order number
+    pr.product_key,                  -- Foreign key referencing product dimension surrogate key
+    cu.customer_key,                 -- Foreign key referencing customer dimension surrogate key
+    sd.sls_order_dt AS order_date,  -- Sales order date
+    sd.sls_ship_dt AS ship_date,    -- Shipment date
+    sd.sls_due_dt AS due_date,      -- Due date for payment/delivery
+    sd.sls_sales AS sales,          -- Total sales amount
+    sd.sls_quantity AS quantity,    -- Quantity sold
+    sd.sls_price AS price           -- Unit selling price
+FROM silver_crm_sales_details AS sd
+LEFT JOIN gold_dim_products AS pr
+    ON sd.sls_prd_key = pr.product_number -- Link sales to product dimension
+LEFT JOIN gold_dim_customers AS cu
+    ON sd.sls_cust_id = cu.customer_id;   -- Link sales to customer dimension
