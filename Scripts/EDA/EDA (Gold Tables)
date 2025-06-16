@@ -2,6 +2,32 @@
 -- Exploratory Data Analysis (EDA) on Gold Tables
 -- -----------------------------------------------
 
+/*
+
+Purpose:
+This script performs an in-depth exploratory data analysis on the Gold tables to understand the structure, distribution, and key business metrics within the dataset. It helps uncover patterns, trends, and anomalies that can guide future analysis, reporting, and business decisions.
+
+Key Steps:
+- **Schema Exploration:** Identify available tables and understand their column structures.
+- **Unique Values Identification:** Analyze distinct categories, countries, genders, and product hierarchies to understand data variety and distribution.
+- **Date Range Analysis:** Determine the lifespan of the dataset, sales periods, and customer age distribution.
+- **Business Metrics Calculation:** Summarize key performance indicators such as total sales, total quantity, number of orders, number of products, and number of customers.
+- **Customer and Product Distribution:** Analyze customer demographics and product distribution by category, country, and gender.
+- **Revenue and Sales Analysis:** Identify which products, sub-categories, customers, and countries contribute most to sales.
+- **Ranking Analysis:** Determine top and bottom performers across products, sub-categories, and customers using aggregate functions and window functions like ROW_NUMBER() and RANK().
+
+Workflow:
+The analysis starts by exploring the schema and continues through detailed evaluations of customers, products, and sales. By running this script, analysts can develop a deep understanding of the dataset’s coverage, quality, and key business drivers.
+
+Importance:
+This EDA is a critical first step in the data pipeline to ensure familiarity with the dataset, validate business assumptions, and lay the groundwork for building meaningful dashboards, reports, and machine learning models. It also helps identify potential data issues early in the process.
+
+Usage:
+Run this script after loading data into the Gold layer to gain essential business insights and ensure the dataset is ready for further analysis, reporting, and visualization.
+
+*/
+
+
 -- Schema Exploration: Get the list of all available tables
 SELECT * FROM INFORMATION_SCHEMA.TABLES;
 
