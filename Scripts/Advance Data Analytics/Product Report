@@ -1,0 +1,100 @@
+-- ------------------------------------------------
+-- Product Report on Gold Tables
+-- ------------------------------------------------
+
+/*
+
+Purpose:
+This product report view consolidates and summarizes product-level data from the Gold tables to provide actionable insights into product performance, sales trends, customer reach, and product segmentation. It supports product portfolio management and sales strategy optimization.
+
+Key Steps:
+- **Transaction Data Aggregation:** Collect and summarize product transactions including order counts, total sales, total quantity sold, and unique customer counts.
+- **Product Profiling:** Calculate key product attributes such as lifespan, recency (months since last sale), average selling price, and average monthly sales.
+- **Product Segmentation:** Classify products into High Performer, Mid-Range, and Low Performer segments based on total sales.
+- **KPI Computation:** Compute critical KPIs like total orders, total customers, lifespan, recency, average selling price, and average monthly sales to evaluate product contribution and market stability.
+
+Workflow:
+The report is structured in logical steps beginning with detailed transaction and product data joins, followed by product-level aggregations, and enhanced with segmentation and KPIs. The final output is stored as a reusable SQL view for reporting, tracking, and product analysis.
+
+Importance:
+This product report provides a comprehensive view of product performance that is crucial for inventory management, pricing strategies, product lifecycle analysis, and marketing focus. It supports data-driven decision-making by highlighting high-impact products and potential underperformers.
+
+Usage:
+Use this view to power product dashboards, performance monitoring, portfolio reviews, and sales reports. Run the view on validated Gold layer data to ensure consistent and reliable insights for business analysis.
+
+*/
+
+
+
+CREATE VIEW gold_product_report AS 
+
+-- Step 1: Prepare detailed product transaction data
+WITH report_query AS (
+    SELECT
+        f.order_number,
+        f.order_date,
+        f.customer_key,
+        f.sales,
+        f.quantity,
+        p.product_key,
+        p.product_name,
+        p.category,
+        p.sub_category,
+        p.cost
+    FROM gold_fact_sales AS f
+    LEFT JOIN gold_dim_products AS p ON f.product_key = p.product_key
+    WHERE order_date > '1000-01-01'
+), 
+
+-- Step 2: Aggregate product-level KPIs
+product_aggregation AS (
+    SELECT
+        product_key,
+        product_name,
+        category,
+        sub_category,
+        cost,
+        TIMESTAMPDIFF(MONTH, MIN(order_date), MAX(order_date)) AS lifespan,
+        MAX(order_date) AS last_order_date,
+        COUNT(DISTINCT order_number) AS total_orders,
+        COUNT(DISTINCT customer_key) AS total_customers,
+        SUM(sales) AS total_sales,
+        SUM(quantity) AS total_quantity,
+        ROUND(AVG(CAST(sales AS FLOAT) / NULLIF(quantity, 0)), 1) AS avg_selling_price
+    FROM report_query
+    GROUP BY product_key, product_name, category, sub_category, cost
+)
+
+-- Step 3: Final product report with segmentation and KPIs
+SELECT
+    product_key,
+    product_name,
+    category,
+    sub_category,
+    cost,
+    last_order_date,
+    
+    -- Months since last sale
+    TIMESTAMPDIFF(MONTH, last_order_date, CURDATE()) AS recency_in_months,
+    
+    -- Product segmentation based on total sales
+    CASE 
+        WHEN total_sales > 50000 THEN 'High Performer'
+        WHEN total_sales >= 10000 THEN 'Mid-Range'
+        ELSE 'Low Performer'
+    END AS product_segment,
+    
+    lifespan,
+    total_orders,
+    total_sales,
+    total_quantity,
+    total_customers,
+    avg_selling_price,
+    
+    -- Average monthly sales
+    CASE 
+        WHEN lifespan = 0 THEN total_sales
+        ELSE total_sales / lifespan
+    END AS Avg_Monthly_Sales
+
+FROM product_aggregation;
