@@ -7,7 +7,7 @@ This project delivers a complete Data Warehousing and Exploratory Data Analysis 
 To view the project whole planning press below link
 https://www.notion.so/DATA-WAREHOUSE-205a8866f9df801993e8e9c786e14b82?source=copy_link
 
-🏗️ Project Overview
+Project Overview
 Architecture: Implemented using the Medallion Architecture (Bronze → Silver → Gold layers) to ensure data quality, traceability, and scalability.
 
 Data Volume: Processed and transformed over half a million rows of customer, product, and sales data.
@@ -24,18 +24,18 @@ Schema standardization
 
 Gold Layer: Built high-performance Gold layer views for accurate reporting and advanced analytics.
 
-🔍 Exploratory Data Analysis (EDA)
+Exploratory Data Analysis (EDA)
 Conducted a detailed Exploratory Data Analysis (EDA) on the Gold layer to:
 
-🗂️ Explore table schemas, key columns, and data types.
+Explore table schemas, key columns, and data types.
 
-🌍 Understand customer demographics (countries, genders, age distribution).
+Understand customer demographics (countries, genders, age distribution).
 
-🛍️ Analyze product hierarchies (categories, sub-categories, product names).
+Analyze product hierarchies (categories, sub-categories, product names).
 
-🕒 Perform date range and customer lifetime value analysis.
+Perform date range and customer lifetime value analysis.
 
-💰 Calculate key business metrics:
+Calculate key business metrics:
 
 Total Sales
 
@@ -47,7 +47,7 @@ Number of Products
 
 Number of Orders
 
-📊 Identify top/bottom performers:
+Identify top/bottom performers:
 
 Best-selling products and sub-categories
 
