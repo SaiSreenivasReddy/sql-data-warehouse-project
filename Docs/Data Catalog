@@ -1,5 +1,5 @@
-📊 Gold Layer Data Warehouse: Data Catalog
-📝 Project Overview
+Gold Layer Data Warehouse: Data Catalog
+Project Overview
 This repository contains the Data Catalog for the Gold Layer of a data warehouse.
 The Gold Layer provides business-ready, analytics-friendly data through carefully structured dimension and fact tables.
 
@@ -11,7 +11,8 @@ Enable business intelligence (BI) queries
 
 Improve decision-making through clean, enriched data
 
-📂 Data Model
+Data Model
+
 1. gold_dim_customers
 Purpose: Holds detailed customer information, including demographics and locations.
 
