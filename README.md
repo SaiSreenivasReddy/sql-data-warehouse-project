@@ -55,6 +55,6 @@ Highest and lowest revenue generators
 
 Most and least active customers
 
-🏆 Apply advanced ranking and window functions for Top-N and Bottom-N analyses.
+Apply advanced ranking and window functions for Top-N and Bottom-N analyses.
 
 The EDA provided critical insights into sales patterns, customer behavior, and product performance, supporting data-driven decision-making and further reporting.
