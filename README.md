@@ -66,5 +66,3 @@ https://www.notion.so/DATA-WAREHOUSE-205a8866f9df801993e8e9c786e14b82?source=cop
 
 ---
 
-## 📂 Folder Structure (Recommended)
-
