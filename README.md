@@ -1,60 +1,70 @@
-# Data Warehouse 
+# Data Warehouse Project
 
-welcome to the Data Warehouse Repository!
+Welcome to the **Data Warehouse** repository!
 
-This project delivers a complete Data Warehousing and Exploratory Data Analysis (EDA) solution using the Medallion Architecture (Bronze, Silver, Gold layers) to process and transform over half a million rows of customer, product, and sales data. Automated SQL-based ETL pipelines were developed for data ingestion, cleaning, deduplication, and normalization to ensure high data quality and optimized query performance. A detailed EDA was performed on the Gold layer to uncover key business metrics, customer behavior, product performance, and sales trends using aggregation, ranking, and window functions. The project enables fast, reliable, and analysis-ready datasets for strategic business insights and reporting.
+This project demonstrates a complete **Data Warehousing** solution designed using the **Medallion Architecture (Bronze → Silver → Gold)**. It includes automated **SQL-based ETL pipelines**, robust data quality transformations, and a deep **Exploratory Data Analysis (EDA)** to extract key business insights from customer, product, and sales data.
 
-To view the project whole planning press below link
+---
+
+## Project Overview
+
+- **Architecture:** Medallion Architecture  
+  (Bronze → Silver → Gold) to ensure data quality, traceability, and scalability  
+- 📊 **Data Volume:** Over **500,000+ rows** of customer, product, and sales data processed and transformed  
+- 🔁 **ETL Pipelines:** Automated SQL workflows for:  
+  - Data ingestion  
+  - Cleaning & deduplication  
+  - Data normalisation & integration  
+  - Schema standardisation  
+-  **Gold Layer:** Built high-performance Gold layer views optimised for analytics & reporting  
+
+---
+
+## Medallion Architecture Summary
+
+| Layer | Purpose | Key Actions |
+|--------|-----------|----------------|
+| **Bronze** | Raw data ingestion | Loading raw data with no transformations |
+| **Silver** | Clean & structured | Data cleaning, deduplication, type corrections, normalization |
+| **Gold** | Analytics-ready | Business logic, aggregations, KPIs, reporting-friendly tables |
+
+---
+
+## Exploratory Data Analysis (EDA)
+
+A detailed EDA was performed on the **Gold layer** to uncover business and behavioural insights:
+
+### Data Understanding & Profiling
+- Table schemas, key columns, and data types
+- Customer demographics (country, gender, age grouping)
+- Product hierarchies (category, sub-category, product name)
+- Date range assessments & customer lifetime value analysis
+
+### Business Metrics Calculated
+- Total Sales
+- Total Quantity Sold
+- Number of Customers
+- Number of Products
+- Number of Orders
+
+### Performance Insights
+- Top and bottom products & sub-categories
+- Highest & lowest revenue contributors
+- Most & least active customers
+- Trend and pattern discovery using window & ranking functions
+
+These insights support **data-driven decision making**, enabling enhanced reporting and strategic planning.
+
+---
+
+## Project Documentation
+
+For the complete project planning, workflow design, and documentation, visit the link below:
+
+🔗 **Notion Workspace:**  
 https://www.notion.so/DATA-WAREHOUSE-205a8866f9df801993e8e9c786e14b82?source=copy_link
 
-Project Overview
-Architecture: Implemented using the Medallion Architecture (Bronze → Silver → Gold layers) to ensure data quality, traceability, and scalability.
+---
 
-Data Volume: Processed and transformed over half a million rows of customer, product, and sales data.
+## 📂 Folder Structure (Recommended)
 
-ETL Pipelines: Designed and automated SQL-based ETL pipelines for:
-
-Data ingestion
-
-Cleaning and deduplication
-
-Data normalization and integration
-
-Schema standardization
-
-Gold Layer: Built high-performance Gold layer views for accurate reporting and advanced analytics.
-
-Exploratory Data Analysis (EDA)
-Conducted a detailed Exploratory Data Analysis (EDA) on the Gold layer to:
-
-Explore table schemas, key columns, and data types.
-
-Understand customer demographics (countries, genders, age distribution).
-
-Analyze product hierarchies (categories, sub-categories, product names).
-
-Perform date range and customer lifetime value analysis.
-
-Calculate key business metrics:
-
-Total Sales
-
-Total Quantity Sold
-
-Number of Customers
-
-Number of Products
-
-Number of Orders
-
-Identify top/bottom performers:
-
-Best-selling products and sub-categories
-
-Highest and lowest revenue generators
-
-Most and least active customers
-
-Apply advanced ranking and window functions for Top-N and Bottom-N analyses.
-
-The EDA provided critical insights into sales patterns, customer behavior, and product performance, supporting data-driven decision-making and further reporting.
