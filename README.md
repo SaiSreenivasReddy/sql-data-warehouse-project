@@ -10,8 +10,8 @@ This project demonstrates a complete **Data Warehousing** solution designed usin
 
 - **Architecture:** Medallion Architecture  
   (Bronze → Silver → Gold) to ensure data quality, traceability, and scalability  
-- 📊 **Data Volume:** Over **500,000+ rows** of customer, product, and sales data processed and transformed  
-- 🔁 **ETL Pipelines:** Automated SQL workflows for:  
+- **Data Volume:** Over **500,000+ rows** of customer, product, and sales data processed and transformed  
+- **ETL Pipelines:** Automated SQL workflows for:  
   - Data ingestion  
   - Cleaning & deduplication  
   - Data normalisation & integration  
